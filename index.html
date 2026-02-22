@@ -567,17 +567,7 @@
         <div id="loginScreen" class="login-screen">
             <h1>💰 My Budget Tracker</h1>
             <p>Track your expenses and manage your budget</p>
-            <div class="input-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" placeholder="Enter your username">
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password">
-            </div>
-            <button class="btn btn-primary" onclick="login()">Login</button>
-            <button class="btn btn-secondary" onclick="demoLogin()">Demo Login</button>
-            <p style="margin-top: 20px; font-size: 12px; color: #999;">Demo: username: demo / password: demo</p>
+            <button class="btn btn-primary" onclick="signInWithGoogle()">Sign in with Google</button>
         </div>
 
         <!-- App Screen -->
@@ -587,7 +577,7 @@
                 <h2>My Budget Tracker</h2>
                 <div class="user-info">
                     <span id="userDisplay"></span>
-                    <button class="logout-btn" onclick="logout()">Logout</button>
+                    <button class="logout-btn" onclick="signOut()">Logout</button>
                 </div>
             </div>
 
@@ -844,7 +834,9 @@
             </div>
         </div>
     </div>
-
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="firebase.js"></script>
     <script>
         // Global variables
         let currentUser = null;
@@ -854,6 +846,16 @@
         let transactions = [];
         const BUDGET = 6000;
         const INCOME = 5500;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                showApp();
+            } else {
+                currentUser = null;
+                showLogin();
+            }
+        });
 
         // Load from localStorage
         function loadData() {
@@ -869,36 +871,15 @@
             localStorage.setItem('budgetTrackerData', JSON.stringify(transactions));
         }
 
-        // Login functions
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (username && password) {
-                currentUser = username;
-                showApp();
-            } else {
-                alert('Please enter username and password');
-            }
-        }
-
-        function demoLogin() {
-            currentUser = 'Demo User';
-            showApp();
-        }
-
-        function logout() {
-            currentUser = null;
+        function showLogin() {
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('appScreen').classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
         }
 
         function showApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
-            document.getElementById('userDisplay').textContent = currentUser;
+            document.getElementById('userDisplay').textContent = currentUser.displayName || currentUser.email;
             loadData();
         }
 
@@ -1016,6 +997,8 @@
             const now = new Date();
             document.getElementById('currentMonth').textContent = String(now.getMonth() + 1).padStart(2, '0');
         }
+
+
 
         function updateTransactionList() {
             const list = document.getElementById('transactionList');
